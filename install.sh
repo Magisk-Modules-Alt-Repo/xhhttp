@@ -143,7 +143,6 @@ on_install() {
   
   # Symbolic link for lowercase/UPPERCASE support in terminal
   [ -d "$MODPATH/system/bin/" ] || mkdir -p "$MODPATH/system/bin/"
-  ln -sf xh "$MODPATH/system/bin/xh"
   ln -sf xh "$MODPATH/system/bin/xhs"
 }
 
