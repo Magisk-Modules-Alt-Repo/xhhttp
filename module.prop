@@ -1,0 +1,6 @@
+id=xhhttp
+name=xh
+version=v0.16.1
+versionCode=0.16.1
+author=ducaale & Der_Googler  
+description=Friendly and fast tool for sending HTTP requests 
