@@ -1,6 +1,6 @@
 id=xhhttp
 name=xh for Android
 version=v0.16.1
-versionCode=0.16.1
-author=ducaale & Der_Googler  
-description=Friendly and fast tool for sending HTTP requests 
+versionCode=0161
+author=ducaale & Der_Googler
+description=Friendly and fast tool for sending HTTP requests
