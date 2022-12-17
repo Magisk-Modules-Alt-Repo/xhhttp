@@ -122,15 +122,15 @@ REPLACE="
 # Set what you want to display when installing your module
 
 print_modname() {
-  ui_print "====================================="
-  ui_print "                xh                   "
-  ui_print "-------------------------------------"
-  ui_print "      Friendly and fast tool for     "
-  ui_print "       sending HTTP requests         "
-  ui_print "-------------------------------------"
-  ui_print " https://github.com/ducaale/xh       "
-  ui_print " https://github.com/Googlers-Repo/xh "
-  ui_print "====================================="
+  ui_print "==================================================="
+  ui_print "                        xh                         "
+  ui_print "---------------------------------------------------"
+  ui_print "            Friendly and fast tool for             "
+  ui_print "               sending HTTP requests               "
+  ui_print "---------------------------------------------------"
+  ui_print " https://github.com/ducaale/xh                     "
+  ui_print " https://github.com/Magisk-Modules-Alt-Repo/xhhttp "
+  ui_print "==================================================="
 }
 
 # Copy/extract your module files into $MODPATH in on_install.
