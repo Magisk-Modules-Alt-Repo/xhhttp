@@ -6,7 +6,7 @@
 as possible of [HTTPie's](https://httpie.io/) excellent design, with a focus
 on improved performance.
 
-[![asciicast](/assets/xh-demo.gif)](https://asciinema.org/a/475190)
+[![asciicast](https://raw.githubusercontent.com/ducaale/xh/master/assets/xh-demo.gif)](https://asciinema.org/a/475190)
 
 ## Installation
 
