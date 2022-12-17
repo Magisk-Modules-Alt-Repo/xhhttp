@@ -4,3 +4,6 @@ version=v0.16.1
 versionCode=0161
 author=ducaale & Der_Googler
 description=Friendly and fast tool for sending HTTP requests
+changeBoot=false
+needRamdisk=false
+support=https://github.com/Googlers-Repo/xh
