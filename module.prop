@@ -7,3 +7,4 @@ description=Friendly and fast tool for sending HTTP requests
 changeBoot=false
 needRamdisk=false
 support=https://github.com/Magisk-Modules-Alt-Repo/xhhttp
+image=https://asciinema.org/a/475190
