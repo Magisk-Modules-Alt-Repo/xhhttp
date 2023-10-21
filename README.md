@@ -10,7 +10,11 @@ on improved performance.
 
 ## Installation
 
-Installation via Magisk
+Via [MMRL](https://github.com/DerGoogler/MMRL) or via the [MMRL CLI](https://github.com/DerGoogler/MMRL-CLI)
+
+```shell
+mmrl install -y xhhttp
+```
 
 
 ## Usage

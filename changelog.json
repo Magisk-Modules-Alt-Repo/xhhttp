@@ -1,8 +1,0 @@
-[
-    {
-      "title": "v0.18.0",
-      "version": "v0.180",
-      "color": "primary",
-      "changes": "### Features\r\n- Support reading query param and header values from a file, see #288 (@ducaale)\r\n- Highlight Syntax errors found while tokenizing a JSON path, see #260 (@ducaale)\r\n- Support outputting the metadata of a response via `--meta`, `--print=m` or `-vv`, see #240 (@ducaale)\r\n\r\n### Bug fixes\r\n- Fix panic when when parsing connection timeout, see #295 (@sorairolake)\r\n\r\n### Breaking changes\r\n- Remove `-m` as a short flag for `--multipart`, see #299 (@ducaale)"
-    }
-  ]
