@@ -1,12 +1,13 @@
 # xh
-[![Version info](https://img.shields.io/crates/v/xh.svg)](https://crates.io/crates/xh)
-[![Packaging status](https://repology.org/badge/tiny-repos/xh.svg)](https://repology.org/project/xh/versions)
+
+<a href="https://crates.io/crates/xh" noIcon>![Version info](https://img.shields.io/crates/v/xh.svg)</a>
+<a href="https://repology.org/project/xh/versions" noIcon>![Packaging status](https://repology.org/badge/tiny-repos/xh.svg)</a>
 
 `xh` is a friendly and fast tool for sending HTTP requests. It reimplements as much
 as possible of [HTTPie's](https://httpie.io/) excellent design, with a focus
 on improved performance.
 
-[![asciicast](https://raw.githubusercontent.com/ducaale/xh/master/assets/xh-demo.gif)](https://asciinema.org/a/475190)
+<a href="https://asciinema.org/a/475190" noIcon>![asciicast](https://raw.githubusercontent.com/ducaale/xh/master/assets/xh-demo.gif)</a>
 
 ## Installation
 
