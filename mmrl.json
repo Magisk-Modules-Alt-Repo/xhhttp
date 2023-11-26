@@ -2,10 +2,9 @@
     "author": "DerGoogler",
     "contributors": ["ducaale"],
     "logo": null,
-    "cover": null,
+    "cover": "https://raw.githubusercontent.com/ducaale/xh/master/assets/xh-demo.gif",
     "screenshots": [
         "https://raw.githubusercontent.com/ducaale/xh/master/assets/xh-demo.gif"
     ],
-    "categories": ["System"],
-    "require": null
+    "categories": ["System"]
 }
