@@ -1,7 +1,7 @@
 id=xhhttp
 name=xh for Android
-version=v0.20.1
-versionCode=0201
+version=v0.22.0
+versionCode=0221
 author=ducaale & Der_Googler
 description=Friendly and fast tool for sending HTTP requests
 changeBoot=false
