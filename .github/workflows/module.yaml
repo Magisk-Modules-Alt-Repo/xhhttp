@@ -1,5 +1,4 @@
 name: Build Magisk/KernelSU Module
-
 on:
   push:
     tags: [ v*.*.* ]
@@ -9,21 +8,133 @@ jobs:
     name: Build Module
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Setup Apt Dependencies
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        
+      - name: Install Cross
+        run: cargo install cross --git https://github.com/cross-rs/cross
+        
+      - name: Build xh for Multiple Architectures
         run: |
-          sudo apt update -y && sudo apt upgrade -y
-          sudo apt install zip unzip -y
-
-      - name: Make
-        shell: bash
-        run: |
-          zip -r "xh.zip" * -x ".git" -x "README.md"
+          # Build for all Android architectures
+          cross build --target aarch64-linux-android --release
+          cross build --target armv7-linux-androideabi --release
+          cross build --target x86_64-linux-android --release
+          cross build --target i686-linux-android --release
           
-      - name: Publish
+      - name: Prepare Module Structure
+        run: |
+          # Create module directory structure for multiple architectures
+          mkdir -p module/system/bin
+          mkdir -p module/system/lib
+          mkdir -p module/system/lib64
+          
+          # Copy binaries to appropriate directories
+          # For arm64-v8a (modern 64-bit ARM devices)
+          cp ./target/aarch64-linux-android/release/xh module/system/bin/xh_arm64
+          
+          # For armeabi-v7a (32-bit ARM devices)
+          cp ./target/armv7-linux-androideabi/release/xh module/system/bin/xh_arm
+          
+          # For x86_64 (64-bit x86 devices/emulators)
+          cp ./target/x86_64-linux-android/release/xh module/system/bin/xh_x64
+          
+          # For x86 (32-bit x86 devices/emulators)
+          cp ./target/i686-linux-android/release/xh module/system/bin/xh_x86
+          
+          # Make all binaries executable
+          chmod +x module/system/bin/xh_*
+          
+      - name: Create Architecture Detection Script
+        run: |
+          cat > module/system/bin/xh << 'EOF'
+          #!/system/bin/sh
+          # Auto-detect architecture and run appropriate binary
+          
+          ARCH=$(uname -m)
+          
+          case "$ARCH" in
+            aarch64|arm64)
+              exec /system/bin/xh_arm64 "$@"
+              ;;
+            armv7l|armv8l|arm)
+              exec /system/bin/xh_arm "$@"
+              ;;
+            x86_64)
+              exec /system/bin/xh_x64 "$@"
+              ;;
+            i686|x86)
+              exec /system/bin/xh_x86 "$@"
+              ;;
+            *)
+              echo "Unsupported architecture: $ARCH"
+              exit 1
+              ;;
+          esac
+          EOF
+          
+          # Create xhs wrapper for HTTPS by default
+          cat > module/system/bin/xhs << 'EOF'
+          #!/system/bin/sh
+          # HTTPS wrapper - auto-detect architecture
+          
+          ARCH=$(uname -m)
+          
+          case "$ARCH" in
+            aarch64|arm64)
+              exec /system/bin/xh_arm64 --https "$@"
+              ;;
+            armv7l|armv8l|arm)
+              exec /system/bin/xh_arm --https "$@"
+              ;;
+            x86_64)
+              exec /system/bin/xh_x64 --https "$@"
+              ;;
+            i686|x86)
+              exec /system/bin/xh_x86 --https "$@"
+              ;;
+            *)
+              echo "Unsupported architecture: $ARCH"
+              exit 1
+              ;;
+          esac
+          EOF
+          
+          # Make wrapper scripts executable
+          chmod +x module/system/bin/xh
+          chmod +x module/system/bin/xhs
+          
+      - name: Copy Module Files
+        run: |
+          # Copy module metadata files
+          if [ -f "module.prop" ]; then
+            cp module.prop module/
+          fi
+          if [ -d "META-INF" ]; then
+            cp -r META-INF module/
+          fi
+          if [ -f "customize.sh" ]; then
+            cp customize.sh module/
+          fi
+          if [ -f "service.sh" ]; then
+            cp service.sh module/
+          fi
+          if [ -f "post-fs-data.sh" ]; then
+            cp post-fs-data.sh module/
+          fi
+          
+      - name: Package Module
+        run: |
+          cd module
+          zip -r ../xh-magisk-module.zip * -x "*.git*"
+          cd ..
+          
+      - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-            files: 'xh.zip'
+          files: 'xh-magisk-module.zip'
         env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
