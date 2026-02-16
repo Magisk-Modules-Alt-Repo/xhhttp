@@ -8,8 +8,14 @@ jobs:
     name: Build Module
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
+      - name: Checkout Module Repository
         uses: actions/checkout@v4
+        
+      - name: Checkout xh Source Code
+        uses: actions/checkout@v4
+        with:
+          repository: ducaale/xh
+          path: xh-source
         
       - name: Setup Rust Toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -18,6 +24,7 @@ jobs:
         run: cargo install cross --git https://github.com/cross-rs/cross
         
       - name: Build xh for Multiple Architectures
+        working-directory: xh-source
         run: |
           # Build for all Android architectures
           cross build --target aarch64-linux-android --release
@@ -27,30 +34,28 @@ jobs:
           
       - name: Prepare Module Structure
         run: |
-          # Create module directory structure for multiple architectures
-          mkdir -p module/system/bin
-          mkdir -p module/system/lib
-          mkdir -p module/system/lib64
+          # Create system/bin directory
+          mkdir -p system/bin
           
           # Copy binaries to appropriate directories
           # For arm64-v8a (modern 64-bit ARM devices)
-          cp ./target/aarch64-linux-android/release/xh module/system/bin/xh_arm64
+          cp ./xh-source/target/aarch64-linux-android/release/xh system/bin/xh_arm64
           
           # For armeabi-v7a (32-bit ARM devices)
-          cp ./target/armv7-linux-androideabi/release/xh module/system/bin/xh_arm
+          cp ./xh-source/target/armv7-linux-androideabi/release/xh system/bin/xh_arm
           
           # For x86_64 (64-bit x86 devices/emulators)
-          cp ./target/x86_64-linux-android/release/xh module/system/bin/xh_x64
+          cp ./xh-source/target/x86_64-linux-android/release/xh system/bin/xh_x64
           
           # For x86 (32-bit x86 devices/emulators)
-          cp ./target/i686-linux-android/release/xh module/system/bin/xh_x86
+          cp ./xh-source/target/i686-linux-android/release/xh system/bin/xh_x86
           
           # Make all binaries executable
-          chmod +x module/system/bin/xh_*
+          chmod +x system/bin/xh_*
           
       - name: Create Architecture Detection Script
         run: |
-          cat > module/system/bin/xh << 'EOF'
+          cat > system/bin/xh << 'EOF'
           #!/system/bin/sh
           # Auto-detect architecture and run appropriate binary
           
@@ -77,7 +82,7 @@ jobs:
           EOF
           
           # Create xhs wrapper for HTTPS by default
-          cat > module/system/bin/xhs << 'EOF'
+          cat > system/bin/xhs << 'EOF'
           #!/system/bin/sh
           # HTTPS wrapper - auto-detect architecture
           
@@ -104,33 +109,18 @@ jobs:
           EOF
           
           # Make wrapper scripts executable
-          chmod +x module/system/bin/xh
-          chmod +x module/system/bin/xhs
-          
-      - name: Copy Module Files
-        run: |
-          # Copy module metadata files
-          if [ -f "module.prop" ]; then
-            cp module.prop module/
-          fi
-          if [ -d "META-INF" ]; then
-            cp -r META-INF module/
-          fi
-          if [ -f "customize.sh" ]; then
-            cp customize.sh module/
-          fi
-          if [ -f "service.sh" ]; then
-            cp service.sh module/
-          fi
-          if [ -f "post-fs-data.sh" ]; then
-            cp post-fs-data.sh module/
-          fi
+          chmod +x system/bin/xh
+          chmod +x system/bin/xhs
           
       - name: Package Module
         run: |
-          cd module
-          zip -r ../xh-magisk-module.zip * -x "*.git*"
-          cd ..
+          zip -r xh-magisk-module.zip \
+            system \
+            module.prop \
+            META-INF \
+            README.md \
+            -x "*.git*" \
+            -x "xh-source/*"
           
       - name: Create Release
         uses: softprops/action-gh-release@v1
