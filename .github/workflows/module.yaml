@@ -4,123 +4,79 @@ on:
     tags: [ v*.*.* ]
 
 jobs:
-  build:
-    name: Build Module
+  build-binaries:
+    name: Build ${{ matrix.target }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - target: aarch64-linux-android
+            arch: arm64
+          - target: armv7-linux-androideabi
+            arch: arm
+          - target: x86_64-linux-android
+            arch: x64
+          - target: i686-linux-android
+            arch: x86
     steps:
-      - name: Checkout Module Repository
-        uses: actions/checkout@v4
-        
       - name: Checkout xh Source Code
         uses: actions/checkout@v4
         with:
           repository: ducaale/xh
-          path: xh-source
-        
+          
       - name: Setup Rust Toolchain
         uses: dtolnay/rust-toolchain@stable
         
       - name: Install Cross
         run: cargo install cross --git https://github.com/cross-rs/cross
         
-      - name: Build xh for Multiple Architectures
-        working-directory: xh-source
+      - name: Build xh for ${{ matrix.target }}
+        run: cross build --target ${{ matrix.target }} --release
+          
+      - name: Upload Binary Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: xh-${{ matrix.arch }}
+          path: target/${{ matrix.target }}/release/xh
+          retention-days: 1
+
+  package-module:
+    name: Package Module
+    needs: build-binaries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Module Repository
+        uses: actions/checkout@v4
+        
+      - name: Download All Binaries
+        uses: actions/download-artifact@v4
+        with:
+          path: binaries
+          
+      - name: Prepare Module Binaries
         run: |
-          # Build for all Android architectures
-          cross build --target aarch64-linux-android --release
-          cross build --target armv7-linux-androideabi --release
-          cross build --target x86_64-linux-android --release
-          cross build --target i686-linux-android --release
+          # Create binaries directory in module
+          mkdir -p binaries_all
           
-      - name: Prepare Module Structure
-        run: |
-          # Create system/bin directory
-          mkdir -p system/bin
-          
-          # Copy binaries to appropriate directories
-          # For arm64-v8a (modern 64-bit ARM devices)
-          cp ./xh-source/target/aarch64-linux-android/release/xh system/bin/xh_arm64
-          
-          # For armeabi-v7a (32-bit ARM devices)
-          cp ./xh-source/target/armv7-linux-androideabi/release/xh system/bin/xh_arm
-          
-          # For x86_64 (64-bit x86 devices/emulators)
-          cp ./xh-source/target/x86_64-linux-android/release/xh system/bin/xh_x64
-          
-          # For x86 (32-bit x86 devices/emulators)
-          cp ./xh-source/target/i686-linux-android/release/xh system/bin/xh_x86
+          # Copy and rename binaries
+          cp binaries/xh-arm64/xh binaries_all/xh_arm64
+          cp binaries/xh-arm/xh binaries_all/xh_arm
+          cp binaries/xh-x64/xh binaries_all/xh_x64
+          cp binaries/xh-x86/xh binaries_all/xh_x86
           
           # Make all binaries executable
-          chmod +x system/bin/xh_*
-          
-      - name: Create Architecture Detection Script
-        run: |
-          cat > system/bin/xh << 'EOF'
-          #!/system/bin/sh
-          # Auto-detect architecture and run appropriate binary
-          
-          ARCH=$(uname -m)
-          
-          case "$ARCH" in
-            aarch64|arm64)
-              exec /system/bin/xh_arm64 "$@"
-              ;;
-            armv7l|armv8l|arm)
-              exec /system/bin/xh_arm "$@"
-              ;;
-            x86_64)
-              exec /system/bin/xh_x64 "$@"
-              ;;
-            i686|x86)
-              exec /system/bin/xh_x86 "$@"
-              ;;
-            *)
-              echo "Unsupported architecture: $ARCH"
-              exit 1
-              ;;
-          esac
-          EOF
-          
-          # Create xhs wrapper for HTTPS by default
-          cat > system/bin/xhs << 'EOF'
-          #!/system/bin/sh
-          # HTTPS wrapper - auto-detect architecture
-          
-          ARCH=$(uname -m)
-          
-          case "$ARCH" in
-            aarch64|arm64)
-              exec /system/bin/xh_arm64 --https "$@"
-              ;;
-            armv7l|armv8l|arm)
-              exec /system/bin/xh_arm --https "$@"
-              ;;
-            x86_64)
-              exec /system/bin/xh_x64 --https "$@"
-              ;;
-            i686|x86)
-              exec /system/bin/xh_x86 --https "$@"
-              ;;
-            *)
-              echo "Unsupported architecture: $ARCH"
-              exit 1
-              ;;
-          esac
-          EOF
-          
-          # Make wrapper scripts executable
-          chmod +x system/bin/xh
-          chmod +x system/bin/xhs
+          chmod +x binaries_all/*
           
       - name: Package Module
         run: |
           zip -r xh-magisk-module.zip \
-            system \
+            binaries_all \
+            customize.sh \
             module.prop \
             META-INF \
             README.md \
             -x "*.git*" \
-            -x "xh-source/*"
+            -x "binaries/*"
           
       - name: Create Release
         uses: softprops/action-gh-release@v1
